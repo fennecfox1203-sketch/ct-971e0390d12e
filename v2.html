@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="robots" content="noindex">
+<title>코트 모서리</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,system-ui,"Apple SD Gothic Neo",sans-serif;background:#111;color:#eee}
+header{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#1c1c1c;position:sticky;top:0;z-index:5}
+#prog{font-weight:700;font-size:18px}#cam{color:#aaa;font-size:13px}
+#ask{flex:1;text-align:right;font-size:15px}#ask b{color:#ffd400}
+#cv{display:block;width:100%;height:62vh;touch-action:none;background:#4a4a4a}
+#loupe{position:fixed;width:140px;height:140px;border-radius:50%;border:3px solid #ffd400;pointer-events:none;display:none;z-index:9;background:#000}
+.row{display:flex;gap:6px;padding:6px 8px;flex-wrap:wrap}
+button{font-size:15px;padding:11px 10px;border-radius:10px;border:0;background:#333;color:#fff;flex:1}
+button.pri{background:#2b6cff}button:disabled{opacity:.35}button.sm{flex:0 0 auto;min-width:46px}
+#modeBtn.on{background:#a15c00}
+.help{padding:4px 12px 10px;font-size:14px;line-height:1.5;color:#ccc}.help b{color:#fff}
+#hint{display:flex;gap:10px;align-items:center;padding:6px 12px}#hint svg{flex:0 0 130px}
+#done,#pick{display:none;padding:16px}
+#code{width:100%;height:120px;font-size:12px;background:#000;color:#9f9;border:1px solid #444;border-radius:8px;padding:8px;word-break:break-all}
+#copy{font-size:22px;padding:18px;margin:12px 0;width:100%;background:#2b6cff}
+.pk{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:17px}.pk img{width:120px;border-radius:6px}.pk input{width:26px;height:26px}
+</style></head>
+<body>
+<header><span id="prog">1/6</span><span id="cam"></span><span id="ask"></span></header>
+<div id="main">
+<canvas id="cv"></canvas>
+<div class="row">
+ <button class="sm" id="zin">＋</button><button class="sm" id="zout">－</button><button id="fit">전체 보기</button><button id="fitp">사진만</button>
+</div>
+<div class="row"><button id="undo">↩ 되돌리기</button><button id="reset">이 사진 다시</button><button id="skip">건너뛰기</button></div>
+<div class="row"><button id="prev">◀ 이전</button><button id="next" class="pri">다음 ▶</button></div>
+<div id="hint"><svg id="dia" viewBox="0 0 150 120"></svg>
+<div class="help" style="padding:0">복식 코트 <b>바깥 모서리 4곳</b>을 순서대로 찍어 주세요.<br>
+① 먼 쪽 왼쪽 → ② 먼 쪽 오른쪽 → ③ 가까운 쪽 오른쪽 → ④ 가까운 쪽 왼쪽</div></div>
+<div class="help">
+• <b>모서리가 사진 밖이면</b> 회색 여백에 찍으세요. 점을 찍으면 <b>노란 점선</b>이 변을 길게 이어 줘요. 이 점선이 사진 속 코트 선과 겹치도록 점을 끌어서 맞추면 돼요.<br>
+• <b>두 손가락</b>으로 벌리면 확대, 오므리면 축소, 같이 움직이면 화면 이동이에요. <b>한 손가락</b>은 점 찍기예요. 누른 채로 움직이면 돋보기가 나오고, 손을 뗀 곳에 점이 찍혀요. 찍은 점은 다시 눌러서 끌면 고쳐져요.<br>
+• 그래도 어려우면 아래 버튼을 누르세요. ③④를 <b>가까운 쪽 숏 서비스 라인</b>(네트에서 1.98 m 선)과 바깥 사이드라인이 만나는 점으로 바꿔요.
+</div>
+<div class="row"><button id="modeBtn">가까운 모서리가 화면 밖이에요 → 서비스 라인으로</button></div>
+<div class="row"><button id="redoBtn">다시 찍을 카메라만 고르기</button></div>
+</div>
+<div id="pick"><h3>다시 찍을 카메라를 고르세요</h3><div id="pklist"></div>
+ <div class="row"><button id="pkgo" class="pri">고른 카메라만 다시 찍기</button></div>
+ <div class="row"><button id="pkall">전체 카메라로 돌아가기</button><button id="pkcancel">취소</button></div></div>
+<div id="done">
+ <h2>끝! 고맙습니다</h2>
+ <p style="font-size:17px">아래 <b>복사</b>를 누른 뒤 <b>이 코드를 마스터 채팅에 붙여 넣어 주세요.</b></p>
+ <button id="copy">복사</button>
+ <textarea id="code" readonly></textarea>
+ <p id="copied" style="color:#9f9"></p>
+ <div class="row"><button id="back">◀ 다시 보기/고치기</button></div>
+</div>
+<canvas id="loupe" width="140" height="140"></canvas>
+<script>
+const CAMS=[1,2,3,4,5,6].map(i=>({id:'cam'+i,src:'f/'+i+'.jpg',W:1920,H:1080}));
+const KEY='ct_v2',ML=0.5,MR=0.5,MT=0.2,MB=0.7;
+const $=id=>document.getElementById(id);
+let S=JSON.parse(localStorage.getItem(KEY)||'null')||{i:0,d:{},sel:null};
+const cv=$('cv'),cx=cv.getContext('2d'),lp=$('loupe'),lx=lp.getContext('2d');
+const imgs=CAMS.map(c=>{const im=new Image();im.src=c.src;im.onload=()=>{if(cam()===c){fit();draw()}};return im});
+function list(){return S.sel?CAMS.filter(c=>S.sel.includes(c.id)):CAMS}
+function cam(){const L=list();if(S.i>=L.length)S.i=L.length-1;return L[S.i]}
+function img(){return imgs[CAMS.indexOf(cam())]}
+function cur(){const c=cam();return S.d[c.id]||(S.d[c.id]={m:'c',p:[]})}
+function save(){localStorage.setItem(KEY,JSON.stringify(S))}
+// URL ?redo=1,2,5 -> only those cams, cleared once
+(function(){const q=new URLSearchParams(location.search).get('redo');if(!q)return;
+ const sel=q.split(',').map(s=>'cam'+parseInt(s)).filter(id=>CAMS.some(c=>c.id==id));
+ if(sel.length&&JSON.stringify(sel)!==JSON.stringify(S.sel)){S.sel=sel;S.i=0;sel.forEach(id=>S.d[id]={m:'c',p:[]});save()}})();
+const LBL={c:['먼 쪽 왼쪽 모서리','먼 쪽 오른쪽 모서리','가까운 쪽 오른쪽 모서리','가까운 쪽 왼쪽 모서리'],
+ s:['먼 쪽 왼쪽 모서리','먼 쪽 오른쪽 모서리','가까운 쪽 서비스라인 오른쪽 끝','가까운 쪽 서비스라인 왼쪽 끝']};
+// world = jpg px (photo 0..w,0..h; margin outside). view: screen(css) = world*V.s + (V.ox,V.oy)
+let V={s:0.2,ox:0,oy:0},G={w:1280,h:720};
+function dims(){const im=img();G.w=im.naturalWidth||1280;G.h=im.naturalHeight||720;
+ G.x0=-ML*G.w;G.y0=-MT*G.h;G.x1=G.w*(1+MR);G.y1=G.h*(1+MB);}
+function size(){const dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(cv.width!=Math.round(w*dpr)||cv.height!=Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}return [w,h,dpr]}
+function fitTo(x0,y0,x1,y1){dims();const [w,h]=size();V.s=Math.min(w/(x1-x0),h/(y1-y0));V.ox=(w-(x1-x0)*V.s)/2-x0*V.s;V.oy=(h-(y1-y0)*V.s)/2-y0*V.s}
+function fit(){dims();fitTo(G.x0,G.y0,G.x1,G.y1)}
+function fitPhoto(){dims();fitTo(-0.03*G.w,-0.03*G.h,G.w*1.03,G.h*1.03)}
+function zoomAt(k,sx,sy){const ns=Math.max(0.05,Math.min(20,V.s*k));const wx=(sx-V.ox)/V.s,wy=(sy-V.oy)/V.s;V.s=ns;V.ox=sx-wx*ns;V.oy=sy-wy*ns}
+function o2w(p){const c=cam();return [p[0]*G.w/c.W,p[1]*G.h/c.H]}
+function w2o(p){const c=cam();return [Math.round(p[0]*c.W/G.w*10)/10,Math.round(p[1]*c.H/G.h*10)/10]}
+function e2s(e){const r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]}
+function s2w(s){return [(s[0]-V.ox)/V.s,(s[1]-V.oy)/V.s]}
+function w2s(p){return [p[0]*V.s+V.ox,p[1]*V.s+V.oy]}
+function clampw(p){return [Math.max(G.x0,Math.min(G.x1,p[0])),Math.max(G.y0,Math.min(G.y1,p[1]))]}
+const COL=['#ff3b3b','#ffd400','#2bd9ff','#7dff5a'];
+let drag=null,pinch=null,ptrs=new Map(),blockTap=false;
+function pts(){const d=cur();let P=d.p.map(o2w);if(drag&&drag.idx>=P.length)P=P.concat([drag.pt]);else if(drag)P[drag.idx]=drag.pt;return P}
+function draw(){dims();const [w,h,dpr]=size();cx.setTransform(dpr,0,0,dpr,0,0);
+ cx.fillStyle='#222';cx.fillRect(0,0,w,h);
+ const a=w2s([G.x0,G.y0]),b=w2s([G.x1,G.y1]);cx.fillStyle='#5a5a5a';cx.fillRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);
+ const im=img(),o=w2s([0,0]);if(im.complete&&im.naturalWidth)cx.drawImage(im,o[0],o[1],G.w*V.s,G.h*V.s);
+ const P=pts(),n=P.length;
+ // guide lines: every known edge extended across the whole view
+ cx.save();cx.setLineDash([6,5]);cx.lineWidth=1;cx.strokeStyle='rgba(255,230,0,.9)';
+ for(let i=0;i<n-1+(n==4?1:0);i++){const p=w2s(P[i]),q=w2s(P[(i+1)%n]);const dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy)||1,k=4000/L;
+  cx.beginPath();cx.moveTo(p[0]-dx*k,p[1]-dy*k);cx.lineTo(q[0]+dx*k,q[1]+dy*k);cx.stroke()}
+ cx.restore();
+ cx.lineWidth=2;cx.strokeStyle='rgba(255,255,255,.95)';cx.beginPath();
+ P.forEach((p,i)=>{const q=w2s(p);i?cx.lineTo(q[0],q[1]):cx.moveTo(q[0],q[1])});if(n==4)cx.closePath();cx.stroke();
+ P.forEach((p,i)=>{const q=w2s(p);cx.fillStyle=COL[i];cx.beginPath();cx.arc(q[0],q[1],8,0,7);cx.fill();
+  cx.fillStyle='#000';cx.font='bold 11px sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(i+1,q[0],q[1]+1)});
+ ui();}
+function ui(){const d=cur(),n=d.p.length,L=list();
+ $('prog').textContent=(S.i+1)+'/'+L.length;$('cam').textContent='카메라 '+cam().id.slice(3)+(S.sel?' · 다시 찍기':'')+(d.skip?' (건너뜀)':'');
+ $('ask').innerHTML=n<4?('<b>'+(n+1)+'</b> '+LBL[d.m][n]):'완료 ✓ 다음으로';
+ $('undo').disabled=!n;$('prev').disabled=S.i==0;$('next').disabled=n<4&&!d.skip;
+ $('next').textContent=S.i==L.length-1?'끝내기 ✓':'다음 ▶';
+ $('modeBtn').className=d.m=='s'?'on':'';
+ $('modeBtn').textContent=d.m=='s'?'서비스 라인 모드 사용 중 (누르면 모서리 모드로)':'가까운 모서리가 화면 밖이에요 → 서비스 라인으로';
+ dia(d.m,n);}
+function dia(m,n){const F=[[45,12],[105,12],[140,108],[10,108]],S2=[[45,12],[105,12],[124,70],[26,70]];
+ const P=m=='c'?F:S2;let s='<polygon points="45,12 105,12 140,108 10,108" fill="#1d5e2e" stroke="#fff" stroke-width="2"/>'+
+ '<line x1="31" y1="50" x2="119" y2="50" stroke="#fff" stroke-dasharray="3 2"/><text x="75" y="47" fill="#fff" font-size="8" text-anchor="middle">네트</text>'+
+ '<line x1="26" y1="70" x2="124" y2="70" stroke="#ccc"/><text x="75" y="118" fill="#aaa" font-size="8" text-anchor="middle">(카메라 쪽 = 가까운 쪽)</text>';
+ P.forEach((p,i)=>{s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(i==n?9:6)+'" fill="'+COL[i]+'" stroke="'+(i==n?'#fff':'none')+'" stroke-width="2"/>'+
+  '<text x="'+p[0]+'" y="'+(p[1]+3)+'" font-size="9" font-weight="bold" text-anchor="middle">'+(i+1)+'</text>'});$('dia').innerHTML=s;}
+function loupe(e,pw){const im=img();lp.style.display='block';
+ let Lx=e.clientX-70,T=e.clientY-190;if(T<4)T=e.clientY+50;lp.style.left=Math.max(4,Math.min(window.innerWidth-144,Lx))+'px';lp.style.top=T+'px';
+ const z=Math.max(V.s*2.5,0.6);lx.fillStyle='#5a5a5a';lx.fillRect(0,0,140,140);
+ lx.drawImage(im,70-pw[0]*z,70-pw[1]*z,G.w*z,G.h*z);
+ const P=pts();lx.save();lx.setLineDash([4,3]);lx.strokeStyle='rgba(255,230,0,.9)';lx.lineWidth=1;const n=P.length;
+ for(let i=0;i<n-1+(n==4?1:0);i++){const p=P[i],q=P[(i+1)%n];const dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy)||1,k=5000/L;
+  lx.beginPath();lx.moveTo(70+(p[0]-dx*k-pw[0])*z,70+(p[1]-dy*k-pw[1])*z);lx.lineTo(70+(q[0]+dx*k-pw[0])*z,70+(q[1]+dy*k-pw[1])*z);lx.stroke()}
+ lx.restore();lx.strokeStyle='#ff3b3b';lx.lineWidth=1;lx.beginPath();lx.moveTo(70,55);lx.lineTo(70,85);lx.moveTo(55,70);lx.lineTo(85,70);lx.stroke();}
+function pinchInfo(){const a=[...ptrs.values()];return {d:Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1,m:[(a[0][0]+a[1][0])/2,(a[0][1]+a[1][1])/2]}}
+cv.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,e2s(e));try{cv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();
+ if(ptrs.size>=2){drag=null;lp.style.display='none';blockTap=true;const p=pinchInfo();pinch={d0:p.d,m0:p.m,s0:V.s,ox0:V.ox,oy0:V.oy};draw();return}
+ if(blockTap)return;const d=cur();if(d.skip)return;const pw=clampw(s2w(e2s(e)));
+ let idx=-1,best=28/V.s;d.p.map(o2w).forEach((q,i)=>{const dd=Math.hypot(q[0]-pw[0],q[1]-pw[1]);if(dd<best){best=dd;idx=i}});
+ if(idx<0){if(d.p.length>=4)return;idx=d.p.length}
+ drag={idx,pt:pw,id:e.pointerId};loupe(e,pw);draw();});
+cv.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,e2s(e));e.preventDefault();
+ if(pinch&&ptrs.size>=2){const p=pinchInfo();const ns=Math.max(0.05,Math.min(20,pinch.s0*p.d/pinch.d0));
+  const wx=(pinch.m0[0]-pinch.ox0)/pinch.s0,wy=(pinch.m0[1]-pinch.oy0)/pinch.s0;V.s=ns;V.ox=p.m[0]-wx*ns;V.oy=p.m[1]-wy*ns;draw();return}
+ if(drag&&e.pointerId===drag.id){drag.pt=clampw(s2w(e2s(e)));loupe(e,drag.pt);draw()}});
+function up(e,commit){ptrs.delete(e.pointerId);
+ if(drag&&e.pointerId===drag.id){const d=cur();if(commit){const o=w2o(drag.pt);if(drag.idx<d.p.length)d.p[drag.idx]=o;else d.p.push(o);save()}drag=null;lp.style.display='none'}
+ if(ptrs.size<2)pinch=null;if(ptrs.size==0)blockTap=false;draw();}
+cv.addEventListener('pointerup',e=>up(e,true));cv.addEventListener('pointercancel',e=>up(e,false));
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=e2s(e);zoomAt(e.deltaY<0?1.15:1/1.15,s[0],s[1]);draw()},{passive:false});
+$('zin').onclick=()=>{zoomAt(1.4,cv.clientWidth/2,cv.clientHeight/2);draw()};$('zout').onclick=()=>{zoomAt(1/1.4,cv.clientWidth/2,cv.clientHeight/2);draw()};
+$('fit').onclick=()=>{fit();draw()};$('fitp').onclick=()=>{fitPhoto();draw()};
+$('undo').onclick=()=>{cur().p.pop();save();draw()};
+$('reset').onclick=()=>{const d=cur();d.p=[];d.skip=false;save();draw()};
+$('skip').onclick=()=>{const d=cur();d.skip=!d.skip;save();if(d.skip)go(1);else draw()};
+$('modeBtn').onclick=()=>{const d=cur();d.m=d.m=='c'?'s':'c';if(d.p.length>2)d.p=d.p.slice(0,2);save();draw()};
+function go(k){const L=list();S.i+=k;if(S.i>=L.length){S.i=L.length-1;save();finish();return}S.i=Math.max(0,S.i);save();fit();draw();window.scrollTo(0,0)}
+$('prev').onclick=()=>go(-1);$('next').onclick=()=>go(1);
+function code(){const o={v:1,c:{}};list().forEach(c=>{const d=S.d[c.id];if(!d)return;
+ o.c[c.id]=d.skip&&d.p.length<4?{skip:1}:{m:d.m,p:d.p,W:c.W,H:c.H}});return JSON.stringify(o)}
+function show(id){['main','done','pick'].forEach(x=>$(x).style.display=x==id?'block':'none');window.scrollTo(0,0)}
+function finish(){$('code').value=code();show('done')}
+$('back').onclick=()=>{show('main');fit();draw()};
+$('copy').onclick=async()=>{const t=$('code');try{await navigator.clipboard.writeText(t.value)}catch(_){t.focus();t.select();document.execCommand('copy')}
+ $('copied').textContent='복사됐어요 ✓ 이제 마스터 채팅에 붙여 넣어 주세요.'};
+$('redoBtn').onclick=()=>{$('pklist').innerHTML=CAMS.map(c=>'<label class="pk"><input type="checkbox" value="'+c.id+'"'+(S.sel&&S.sel.includes(c.id)?' checked':'')+'><img src="'+c.src+'">카메라 '+c.id.slice(3)+'</label>').join('');show('pick')};
+$('pkgo').onclick=()=>{const sel=[...document.querySelectorAll('#pklist input:checked')].map(x=>x.value);if(!sel.length)return;
+ S.sel=sel;S.i=0;sel.forEach(id=>S.d[id]={m:'c',p:[]});save();show('main');fit();draw()};
+$('pkall').onclick=()=>{S.sel=null;S.i=0;save();show('main');fit();draw()};$('pkcancel').onclick=()=>{show('main');draw()};
+window.addEventListener('resize',()=>{fit();draw()});fit();draw();
+</script></body></html>

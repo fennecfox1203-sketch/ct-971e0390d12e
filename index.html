@@ -1,166 +1,322 @@
 <!doctype html>
-<html lang="ko"><head>
+<html lang="ko">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="robots" content="noindex">
-<title>코트 모서리</title>
+<meta name="theme-color" content="#111">
+<title>코트 점 찍기</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,system-ui,"Apple SD Gothic Neo",sans-serif;background:#111;color:#eee}
-header{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#1c1c1c;position:sticky;top:0;z-index:5}
-#prog{font-weight:700;font-size:18px}#cam{color:#aaa;font-size:13px}
-#ask{flex:1;text-align:right;font-size:15px}#ask b{color:#ffd400}
-#cv{display:block;width:100%;height:62vh;touch-action:none;background:#4a4a4a}
-#loupe{position:fixed;width:140px;height:140px;border-radius:50%;border:3px solid #ffd400;pointer-events:none;display:none;z-index:9;background:#000}
+*{box-sizing:border-box}
+html,body{margin:0;background:#0c0c0c}
+body{font-family:-apple-system,system-ui,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#eee;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+button,textarea{font-family:inherit}
+.wrap{max-width:560px;margin:0 auto;background:#111;min-height:100vh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#1c1c1c;position:sticky;top:0;z-index:6}
+#prog{font-weight:800;font-size:18px}
+#cam{color:#aaa;font-size:13px}
+#ask{flex:1;text-align:right;font-size:14px;line-height:1.3}
+#ask b{color:#ffd400}
+#tabs{display:flex;gap:4px;padding:4px 8px 6px;background:#1c1c1c}
+#tabs button{flex:1;padding:8px 0 6px;border-radius:8px;border:0;background:#2a2a2a;color:#ddd;font-weight:700;font-size:14px;min-height:40px}
+#tabs button small{display:block;font-weight:600;font-size:10px;color:#9ad}
+#tabs button.on{background:#2b6cff;color:#fff}
+#tabs button.on small{color:#dce8ff}
+#tabs button.ok{box-shadow:inset 0 -3px 0 #3ddc84}
+#tabs button.mid{box-shadow:inset 0 -3px 0 #e6b800}
+#tabs button.skip{color:#888}
+#cv{display:block;width:100%;height:42vh;min-height:210px;touch-action:none;background:#2a2a2a;cursor:crosshair}
+#loupe{position:fixed;width:140px;height:140px;border-radius:50%;border:3px solid #ffd400;pointer-events:none;display:none;z-index:9;background:#000;box-shadow:0 6px 24px #000}
 .row{display:flex;gap:6px;padding:6px 8px;flex-wrap:wrap}
-button{font-size:15px;padding:11px 10px;border-radius:10px;border:0;background:#333;color:#fff;flex:1}
-button.pri{background:#2b6cff}button:disabled{opacity:.35}button.sm{flex:0 0 auto;min-width:46px}
-#modeBtn.on{background:#a15c00}
-.help{padding:4px 12px 10px;font-size:14px;line-height:1.5;color:#ccc}.help b{color:#fff}
-#hint{display:flex;gap:10px;align-items:center;padding:6px 12px}#hint svg{flex:0 0 130px}
+button{font-size:15px;padding:11px 10px;border-radius:10px;border:0;background:#333;color:#fff;flex:1;min-height:44px}
+button.pri{background:#2b6cff}
+button:disabled{opacity:.35}
+button.sm{flex:0 0 auto;min-width:46px}
+#legend{padding:0 12px 2px;font-size:12px;color:#aaa;line-height:1.4}
+#stat{padding:2px 12px 0;font-size:14px;color:#ddd;min-height:1.2em}
+#stat b{color:#fff}
+.banner{margin:6px 8px;padding:8px 10px;border-radius:10px;font-size:14px;line-height:1.45}
+.banner button{margin-top:8px;width:100%}
+.banner.warn{background:#3a2e00;color:#ffe08a}
+.banner.warn button{background:#6b5310}
+.banner.bad{background:#3a1212;color:#ffd0d0}
+.banner.info{background:#142033;color:#d4e6ff}
+.card{display:flex;gap:8px;margin:4px 8px;padding:8px;background:#1a1a1a;border-radius:12px;align-items:center}
+#dia{width:96px;height:158px;flex:0 0 auto;background:#143322;border-radius:8px}
+.kicker{font-size:12px;color:#aaa}
+#ptname{font-size:16px;font-weight:800;line-height:1.3;margin:2px 0}
+#pthint{font-size:13px;color:#ccc;line-height:1.4}
+.card .row{padding:6px 0 0}
+.card button{font-size:13px;padding:8px;min-height:38px}
+#plist{margin:4px 8px 8px;border:1px solid #333;border-radius:12px;max-height:32vh;overflow:auto;overscroll-behavior:contain;background:#161616;padding-bottom:56px}
+.prow{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:9px 10px;border:0;border-bottom:1px solid #2a2a2a;background:transparent;color:#eee;font-size:14px;border-radius:0;min-height:44px;flex:none}
+.prow.on{background:#2c2614}
+.prow .nm{flex:1;line-height:1.3}
+.prow .err{flex:0 0 auto;font-variant-numeric:tabular-nums;font-size:12px;color:#888}
+.prow .err.ok{color:#8d8}
+.prow .err.warn{color:#e6c200}
+.prow .err.bad{color:#ff6b6b;font-weight:800}
+.dot{width:10px;height:10px;border-radius:50%;background:#555;flex:0 0 auto}
+.dot.post{width:8px;height:8px;border-radius:1px;transform:rotate(45deg)}
+details#more{border-top:1px solid #333}
+details#more>summary{padding:10px 12px;cursor:pointer;color:#ddd;font-size:14px}
+.ghead{padding:6px 12px 2px;font-size:12px;color:#888}
+.help{padding:4px 12px 8px;font-size:13px;line-height:1.5;color:#bbb}
+.help b{color:#fff}
+.foot{position:sticky;bottom:0;background:#1c1c1c;border-top:1px solid #2a2a2a;padding-bottom:env(safe-area-inset-bottom);z-index:6}
 #done,#pick{display:none;padding:16px}
-#code{width:100%;height:120px;font-size:12px;background:#000;color:#9f9;border:1px solid #444;border-radius:8px;padding:8px;word-break:break-all}
+#done h2{margin:8px 0}
+#sum{font-size:15px;line-height:1.5}
+#sum div{padding:4px 0;border-bottom:1px solid #2a2a2a}
+#code{width:100%;height:150px;font-size:12px;background:#000;color:#9f9;border:1px solid #444;border-radius:8px;padding:8px;word-break:break-all;user-select:text;-webkit-user-select:text}
 #copy{font-size:22px;padding:18px;margin:12px 0;width:100%;background:#2b6cff}
-.pk{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:17px}.pk img{width:120px;border-radius:6px}.pk input{width:26px;height:26px}
-</style></head>
+.pk{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:17px}
+.pk img{width:120px;border-radius:6px}
+.pk input{width:26px;height:26px}
+</style>
+</head>
 <body>
-<header><span id="prog">1/6</span><span id="cam"></span><span id="ask"></span></header>
+<div class="wrap">
 <div id="main">
+<header><span id="prog">1/6</span><span id="cam"></span><span id="ask"></span></header>
+<div id="tabs"></div>
 <canvas id="cv"></canvas>
 <div class="row">
- <button class="sm" id="zin">＋</button><button class="sm" id="zout">－</button><button id="fit">전체 보기</button><button id="fitp">사진만</button>
+ <button class="sm" id="zin" type="button">＋</button>
+ <button class="sm" id="zout" type="button">－</button>
+ <button id="fitp" type="button">사진 맞춤</button>
 </div>
-<div class="row"><button id="undo">↩ 되돌리기</button><button id="reset">이 사진 다시</button><button id="skip">건너뛰기</button></div>
-<div class="row"><button id="prev">◀ 이전</button><button id="next" class="pri">다음 ▶</button></div>
-<div id="hint"><svg id="dia" viewBox="0 0 150 120"></svg>
-<div class="help" style="padding:0">복식 코트 <b>바깥 모서리 4곳</b>을 순서대로 찍어 주세요.<br>
-① 먼 쪽 왼쪽 → ② 먼 쪽 오른쪽 → ③ 가까운 쪽 오른쪽 → ④ 가까운 쪽 왼쪽</div></div>
+<div id="legend">흰 복식 외곽 · 하늘 단식 · 노란 서비스·센터 · 빨간 점선 네트 · 하늘 점선은 기둥</div>
+<div id="stat"></div>
+<div id="banner"></div>
+<div class="card">
+ <svg id="dia" viewBox="0 0 100 176"></svg>
+ <div>
+  <div class="kicker">지금 찍는 점</div>
+  <div id="ptname"></div>
+  <div id="pthint"></div>
+  <div class="row">
+   <button id="pass" type="button">이 점 건너뛰기</button>
+   <button id="delpt" type="button">이 점 지우기</button>
+  </div>
+ </div>
+</div>
+<div id="plist"></div>
 <div class="help">
-• <b>모서리가 사진 밖이면</b> 회색 여백에 찍으세요. 점을 찍으면 <b>노란 점선</b>이 변을 길게 이어 줘요. 이 점선이 사진 속 코트 선과 겹치도록 점을 끌어서 맞추면 돼요.<br>
-• <b>두 손가락</b>으로 벌리면 확대, 오므리면 축소, 같이 움직이면 화면 이동이에요. <b>한 손가락</b>은 점 찍기예요. 누른 채로 움직이면 돋보기가 나오고, 손을 뗀 곳에 점이 찍혀요. 찍은 점은 다시 눌러서 끌면 고쳐져요.<br>
-• 그래도 어려우면 아래 버튼을 누르세요. ③④를 <b>가까운 쪽 숏 서비스 라인</b>(네트에서 1.98 m 선)과 바깥 사이드라인이 만나는 점으로 바꿔요.
+• <b>모서리가 사진 밖이면 맞추지 마세요.</b> 사진 안에 보이는 교차점(선이 만나는 곳)만 누릅니다.<br>
+• 바닥 점이 4곳 모이면 코트 선이 사진 위에 겹쳐 그려집니다. 그 선이 실제 선과 겹치면 맞은 거예요. <b>빨간 점</b>은 다른 점과 안 맞으니 그 점만 다시 찍으세요.<br>
+• 왼쪽·오른쪽은 <b>가까운 쪽(카메라 쪽)에 서서 먼 쪽을 볼 때</b>입니다. 사진의 왼쪽이 아닐 수 있으니 왼쪽 그림을 보세요.<br>
+• <b>두 손가락</b>으로 확대·이동, <b>한 손가락</b>으로 점 찍기. 누른 채로 움직이면 돋보기가 나옵니다. 찍은 점은 다시 눌러 끌면 고쳐집니다.<br>
+• 동그라미는 바닥, 다이아는 <b>네트 기둥 꼭대기(1.55 m)</b>입니다. 기둥은 3D 카메라에 쓰이니 두 곳 다 찍어 주세요.
 </div>
-<div class="row"><button id="modeBtn">가까운 모서리가 화면 밖이에요 → 서비스 라인으로</button></div>
-<div class="row"><button id="redoBtn">다시 찍을 카메라만 고르기</button></div>
+<div class="row">
+ <button id="undo" type="button">↩ 되돌리기</button>
+ <button id="reset" type="button">이 사진 다시</button>
+ <button id="skip" type="button">카메라 건너뛰기</button>
 </div>
-<div id="pick"><h3>다시 찍을 카메라를 고르세요</h3><div id="pklist"></div>
- <div class="row"><button id="pkgo" class="pri">고른 카메라만 다시 찍기</button></div>
- <div class="row"><button id="pkall">전체 카메라로 돌아가기</button><button id="pkcancel">취소</button></div></div>
+<div class="foot"><div class="row">
+ <button id="prev" type="button">◀ 이전</button>
+ <button id="next" class="pri" type="button">다음 ▶</button>
+</div></div>
+<div class="row"><button id="redoBtn" type="button">다시 찍을 카메라만 고르기</button></div>
+</div>
+<div id="pick">
+ <h3>다시 찍을 카메라를 고르세요</h3>
+ <div id="pklist"></div>
+ <div class="row"><button id="pkgo" class="pri" type="button">고른 카메라만 다시 찍기</button></div>
+ <div class="row"><button id="pkall" type="button">전체 카메라로 돌아가기</button><button id="pkcancel" type="button">취소</button></div>
+</div>
 <div id="done">
  <h2>끝! 고맙습니다</h2>
  <p style="font-size:17px">아래 <b>복사</b>를 누른 뒤 <b>이 코드를 마스터 채팅에 붙여 넣어 주세요.</b></p>
- <button id="copy">복사</button>
+ <div id="sum"></div>
+ <button id="copy" type="button">복사</button>
  <textarea id="code" readonly></textarea>
  <p id="copied" style="color:#9f9"></p>
- <div class="row"><button id="back">◀ 다시 보기/고치기</button></div>
+ <div class="row"><button id="back" type="button">◀ 다시 보기/고치기</button></div>
+</div>
 </div>
 <canvas id="loupe" width="140" height="140"></canvas>
 <script>
-const CAMS=[1,2,3,4,5,6].map(i=>({id:'cam'+i,src:'f/'+i+'.jpg',W:1920,H:1080}));
-const KEY='ct_v2',ML=0.5,MR=0.5,MT=0.2,MB=0.7;
+/* Court, metres. Origin = near-left doubles corner (camera end, left when
+   facing the far end). x across 0..6.10, y along 0..13.40, z up.
+   The 1280x720 stills are 2/3 previews of the 1920x1080 video, so taps on
+   those files are stored in 1920x1080 pixels. Any other image size is stored
+   in that image's own pixels. */
+const WIDTH=6.10, LENGTH=13.40, NET_Y=6.70, POST_H=1.55, THRESH=20;
+const XS=[['left_doubles',0,'왼쪽 복식'],['left_singles',0.46,'왼쪽 단식'],['centre',3.05,'센터'],['right_singles',5.64,'오른쪽 단식'],['right_doubles',6.10,'오른쪽 복식']];
+const YS=[['near_back',0,'가까운 끝선'],['near_long_service',0.76,'가까운 롱서비스'],['near_short_service',4.72,'가까운 숏서비스'],['net',6.70,'네트'],['far_short_service',8.68,'먼 숏서비스'],['far_long_service',12.64,'먼 롱서비스'],['far_back',13.40,'먼 끝선']];
+const POINTS=[];
+for(const [yk,y,yko] of YS) for(const [xk,x,xko] of XS)
+  POINTS.push({id:yk+'_x_'+xk,w:[x,y,0],ko:yko+' × '+xko,group:yk,groupKo:yko,kind:'ground'});
+POINTS.push({id:'left_net_post_top',w:[0,NET_Y,POST_H],ko:'왼쪽 네트 기둥 꼭대기',group:'post',groupKo:'네트 기둥',kind:'post'});
+POINTS.push({id:'right_net_post_top',w:[WIDTH,NET_Y,POST_H],ko:'오른쪽 네트 기둥 꼭대기',group:'post',groupKo:'네트 기둥',kind:'post'});
+const BY=Object.fromEntries(POINTS.map(p=>[p.id,p]));
+const RECOMMENDED=['near_short_service_x_left_doubles','near_short_service_x_right_doubles','near_short_service_x_centre','near_short_service_x_left_singles','near_short_service_x_right_singles','near_long_service_x_left_doubles','near_long_service_x_right_doubles','near_long_service_x_centre','far_short_service_x_left_doubles','far_short_service_x_right_doubles','far_short_service_x_centre','net_x_left_doubles','net_x_right_doubles','left_net_post_top','right_net_post_top'];
+const RECSET=new Set(RECOMMENDED);
+const LINES=[
+ {a:[0,0],b:[WIDTH,0],k:'dbl'},{a:[WIDTH,0],b:[WIDTH,LENGTH],k:'dbl'},{a:[WIDTH,LENGTH],b:[0,LENGTH],k:'dbl'},{a:[0,LENGTH],b:[0,0],k:'dbl'},
+ {a:[0.46,0],b:[0.46,LENGTH],k:'sgl'},{a:[5.64,0],b:[5.64,LENGTH],k:'sgl'},
+ {a:[0,4.72],b:[WIDTH,4.72],k:'short'},{a:[0,8.68],b:[WIDTH,8.68],k:'short'},
+ {a:[0,0.76],b:[WIDTH,0.76],k:'long'},{a:[0,12.64],b:[WIDTH,12.64],k:'long'},
+ {a:[3.05,0],b:[3.05,4.72],k:'ctr'},{a:[3.05,8.68],b:[3.05,LENGTH],k:'ctr'},
+ {a:[0,NET_Y],b:[WIDTH,NET_Y],k:'net'}];
+const STROKE={dbl:['rgba(255,255,255,.92)',[]],sgl:['rgba(120,220,255,.92)',[]],short:['rgba(255,212,0,.95)',[]],long:['rgba(255,170,50,.92)',[]],ctr:['rgba(255,212,0,.95)',[]],net:['rgba(255,80,80,.95)',[5,4]]};
+
+function mul3(A,B){const C=new Array(9).fill(0);for(let i=0;i<3;i++)for(let j=0;j<3;j++)C[i*3+j]=A[i*3]*B[j]+A[i*3+1]*B[3+j]+A[i*3+2]*B[6+j];return C}
+function invNorm(T){const s=T[0];return [1/s,0,-T[2]/s,0,1/s,-T[5]/s,0,0,1]}
+function normalizePts(pts){let mx=0,my=0;for(const p of pts){mx+=p[0];my+=p[1]}mx/=pts.length;my/=pts.length;let acc=0;for(const p of pts)acc+=Math.hypot(p[0]-mx,p[1]-my);const scale=Math.SQRT2/(acc/pts.length||1);const T=[scale,0,-scale*mx,0,scale,-scale*my,0,0,1];return {npts:pts.map(p=>[(p[0]-mx)*scale,(p[1]-my)*scale]),T}}
+function jacobiEigen(A){const n=A.length;const S=A.map(r=>r.slice());const V=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0));for(let sweep=0;sweep<40;sweep++){let off=0;for(let p=0;p<n-1;p++)for(let q=p+1;q<n;q++)off+=S[p][q]*S[p][q];if(off<1e-28)break;for(let p=0;p<n-1;p++)for(let q=p+1;q<n;q++){const apq=S[p][q];if(Math.abs(apq)<1e-18)continue;const app=S[p][p],aqq=S[q][q];const tau=(aqq-app)/(2*apq);const t=(tau>=0?1:-1)/(Math.abs(tau)+Math.sqrt(1+tau*tau));const c=1/Math.sqrt(1+t*t),s=t*c;const colp=new Array(n),colq=new Array(n);for(let k=0;k<n;k++){colp[k]=S[k][p];colq[k]=S[k][q]}for(let k=0;k<n;k++){if(k===p||k===q)continue;const np=c*colp[k]-s*colq[k],nq=s*colp[k]+c*colq[k];S[k][p]=S[p][k]=np;S[k][q]=S[q][k]=nq}S[p][p]=c*c*app-2*s*c*apq+s*s*aqq;S[q][q]=s*s*app+2*s*c*apq+c*c*aqq;S[p][q]=S[q][p]=0;for(let k=0;k<n;k++){const vip=V[k][p],viq=V[k][q];V[k][p]=c*vip-s*viq;V[k][q]=s*vip+c*viq}}}return {values:S.map((r,i)=>r[i]),V}}
+function applyH(H,X,Y){const u=H[0]*X+H[1]*Y+H[2],v=H[3]*X+H[4]*Y+H[5],w=H[6]*X+H[7]*Y+H[8];if(!isFinite(u)||!isFinite(v)||!isFinite(w)||Math.abs(w)<1e-12)return null;return [u/w,v/w,w]}
+function dlt(world,image){const nw=normalizePts(world),ni=normalizePts(image);const ATA=Array.from({length:9},()=>new Array(9).fill(0));for(let i=0;i<world.length;i++){const X=nw.npts[i][0],Y=nw.npts[i][1],x=ni.npts[i][0],y=ni.npts[i][1];const rows=[[X,Y,1,0,0,0,-x*X,-x*Y,-x],[0,0,0,X,Y,1,-y*X,-y*Y,-y]];for(const r of rows)for(let a=0;a<9;a++)for(let b=0;b<9;b++)ATA[a][b]+=r[a]*r[b]}const {values,V}=jacobiEigen(ATA);const order=values.map((v,i)=>[v,i]).sort((a,b)=>a[0]-b[0]);const stable=order[1][0]>1e-3*Math.max(order[8][0],1e-9);const Hn=V.map(row=>row[order[0][1]]);const H=mul3(mul3(invNorm(ni.T),Hn),nw.T);const sc=H[8]||1;return {H:H.map(v=>v/sc),stable}}
+function spanOK(pts){let mx=0,my=0;for(const p of pts){mx+=p[0];my+=p[1]}mx/=pts.length;my/=pts.length;let xx=0,xy=0,yy=0;for(const p of pts){const dx=p[0]-mx,dy=p[1]-my;xx+=dx*dx;xy+=dx*dy;yy+=dy*dy}const det=xx*yy-xy*xy,tr=xx+yy;return tr>0&&det>1e-8*tr*tr}
+function sample4(n){const idx=[0,1,2,3];for(let i=4;i<n;i++){const j=Math.floor(Math.random()*(i+1));if(j<4)idx[j]=i}return idx}
+function reproj(H,world,image){return world.map((p,i)=>{const q=applyH(H,p[0],p[1]);return q?Math.hypot(q[0]-image[i][0],q[1]-image[i][1]):Infinity})}
+function homography(world,image,opts){const thresh=(opts&&opts.thresh)||THRESH;const n=world.length;if(n<4||world.length!==image.length)return null;const fitIdx=idxs=>{const got=dlt(idxs.map(i=>world[i]),idxs.map(i=>image[i]));return got.stable?got.H:null};let inliers;if((opts&&opts.fast)||n===4){inliers=world.map((_,i)=>i)}else{let best=null;const iters=n<=6?60:160;for(let t=0;t<iters;t++){const idxs=sample4(n);const wpts=idxs.map(i=>world[i]),ipts=idxs.map(i=>image[i]);if(!spanOK(wpts)||!spanOK(ipts))continue;let H;try{H=fitIdx(idxs)}catch(e){continue}if(!H)continue;const err=reproj(H,world,image);const inl=[];for(let i=0;i<n;i++)if(err[i]<=thresh)inl.push(i);if(!best||inl.length>best.length)best=inl;if(inl.length===n)break}inliers=best&&best.length>=4?best:null}if(!inliers)return null;let H;try{H=fitIdx(inliers)}catch(e){return null}if(!H)return null;let err=reproj(H,world,image);const inl2=[];for(let i=0;i<n;i++)if(inliers.includes(i)&&err[i]<=thresh*1.5)inl2.push(i);if(inl2.length>=4&&inl2.length!==inliers.length){try{const H2=fitIdx(inl2);if(H2){H=H2;err=reproj(H,world,image)}}catch(e){}}const finite=err.filter(e=>isFinite(e)&&e<=thresh*1.5);const used=finite.length?finite:err.filter(e=>isFinite(e));const rms=used.length?Math.sqrt(used.reduce((s,e)=>s+e*e,0)/used.length):Infinity;return {H,err,inlier:err.map(e=>isFinite(e)&&e<=thresh),rms}}
+
+const CAMS=[1,2,3,4,5,6].map(i=>({id:'cam'+i,src:'f/'+i+'.jpg',space:null,failed:false}));
+const KEY='ct_v3';
 const $=id=>document.getElementById(id);
-let S=JSON.parse(localStorage.getItem(KEY)||'null')||{i:0,d:{},sel:null};
+let S;try{S=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){S=null}
+if(!S||typeof S!=='object')S={i:0,d:{},sel:null};
+if(!S.d)S.d={};
 const cv=$('cv'),cx=cv.getContext('2d'),lp=$('loupe'),lx=lp.getContext('2d');
-const imgs=CAMS.map(c=>{const im=new Image();im.src=c.src;im.onload=()=>{if(cam()===c){fit();draw()}};return im});
+const imgs=CAMS.map(()=>{const im=new Image();return im});
+function frameSpace(im){const w=im.naturalWidth,h=im.naturalHeight;if(w===1280&&h===720)return {W:1920,H:1080,sx:1.5,sy:1.5,iw:w,ih:h};return {W:w,H:h,sx:1,sy:1,iw:w,ih:h}}
 function list(){return S.sel?CAMS.filter(c=>S.sel.includes(c.id)):CAMS}
-function cam(){const L=list();if(S.i>=L.length)S.i=L.length-1;return L[S.i]}
+function cam(){const L=list();if(S.i<0)S.i=0;if(S.i>=L.length)S.i=L.length-1;return L[Math.max(0,S.i)]}
 function img(){return imgs[CAMS.indexOf(cam())]}
-function cur(){const c=cam();return S.d[c.id]||(S.d[c.id]={m:'c',p:[]})}
-function save(){localStorage.setItem(KEY,JSON.stringify(S))}
-// URL ?redo=1,2,5 -> only those cams, cleared once
-(function(){const q=new URLSearchParams(location.search).get('redo');if(!q)return;
- const sel=q.split(',').map(s=>'cam'+parseInt(s)).filter(id=>CAMS.some(c=>c.id==id));
- if(sel.length&&JSON.stringify(sel)!==JSON.stringify(S.sel)){S.sel=sel;S.i=0;sel.forEach(id=>S.d[id]={m:'c',p:[]});save()}})();
-const LBL={c:['먼 쪽 왼쪽 모서리','먼 쪽 오른쪽 모서리','가까운 쪽 오른쪽 모서리','가까운 쪽 왼쪽 모서리'],
- s:['먼 쪽 왼쪽 모서리','먼 쪽 오른쪽 모서리','가까운 쪽 서비스라인 오른쪽 끝','가까운 쪽 서비스라인 왼쪽 끝']};
-// world = jpg px (photo 0..w,0..h; margin outside). view: screen(css) = world*V.s + (V.ox,V.oy)
-let V={s:0.2,ox:0,oy:0},G={w:1280,h:720};
-function dims(){const im=img();G.w=im.naturalWidth||1280;G.h=im.naturalHeight||720;
- G.x0=-ML*G.w;G.y0=-MT*G.h;G.x1=G.w*(1+MR);G.y1=G.h*(1+MB);}
-function size(){const dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(cv.width!=Math.round(w*dpr)||cv.height!=Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}return [w,h,dpr]}
-function fitTo(x0,y0,x1,y1){dims();const [w,h]=size();V.s=Math.min(w/(x1-x0),h/(y1-y0));V.ox=(w-(x1-x0)*V.s)/2-x0*V.s;V.oy=(h-(y1-y0)*V.s)/2-y0*V.s}
-function fit(){dims();fitTo(G.x0,G.y0,G.x1,G.y1)}
-function fitPhoto(){dims();fitTo(-0.03*G.w,-0.03*G.h,G.w*1.03,G.h*1.03)}
-function zoomAt(k,sx,sy){const ns=Math.max(0.05,Math.min(20,V.s*k));const wx=(sx-V.ox)/V.s,wy=(sy-V.oy)/V.s;V.s=ns;V.ox=sx-wx*ns;V.oy=sy-wy*ns}
-function o2w(p){const c=cam();return [p[0]*G.w/c.W,p[1]*G.h/c.H]}
-function w2o(p){const c=cam();return [Math.round(p[0]*c.W/G.w*10)/10,Math.round(p[1]*c.H/G.h*10)/10]}
+function spaceOf(c){return (c&&c.space)||{W:1920,H:1080,sx:1.5,sy:1.5,iw:1280,ih:720}}
+function blank(){return {pts:{},skip:false,allowFew:false,focus:RECOMMENDED[0],hist:[]}}
+function cur(){const c=cam();const d=S.d[c.id]||(S.d[c.id]=blank());if(!d.pts)d.pts={};if(!d.hist)d.hist=[];if(!d.focus)d.focus=RECOMMENDED[0];return d}
+function save(){try{const slim={i:S.i,sel:S.sel,d:{}};for(const id in S.d){const d=S.d[id];slim.d[id]={pts:d.pts,skip:!!d.skip,allowFew:!!d.allowFew,focus:d.focus||RECOMMENDED[0]}}localStorage.setItem(KEY,JSON.stringify(slim))}catch(e){}}
+(function(){const q=new URLSearchParams(location.search).get('redo');if(!q)return;const sel=q.split(',').map(s=>'cam'+parseInt(s,10)).filter(id=>CAMS.some(c=>c.id===id));if(sel.length&&JSON.stringify(sel)!==JSON.stringify(S.sel)){S.sel=sel;S.i=0;sel.forEach(id=>{S.d[id]=blank()});save()}})();
+function countGround(pts){let n=0;for(const id in pts)if(BY[id]&&BY[id].kind==='ground')n++;return n}
+function countPosts(pts){let n=0;for(const id in pts)if(BY[id]&&BY[id].kind==='post')n++;return n}
+function ptsNow(){const o=Object.assign({},cur().pts);if(drag)o[drag.pid]=drag.pt.slice();return o}
+let V={s:0.3,ox:0,oy:0},drag=null,pinch=null,ptrs=new Map(),blockTap=false,toast='',solved=null,lastFocus=null;
+function size(){const dpr=Math.min(window.devicePixelRatio||1,2.5),w=cv.clientWidth,h=cv.clientHeight;const W=Math.max(1,Math.round(w*dpr)),H=Math.max(1,Math.round(h*dpr));if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}return [w,h,dpr]}
+function fit(){const sp=spaceOf(cam()),[w,h]=size();const x0=-0.02*sp.iw,y0=-0.02*sp.ih,x1=sp.iw*1.02,y1=sp.ih*1.02;V.s=Math.min(w/(x1-x0),h/(y1-y0));V.ox=(w-(x1-x0)*V.s)/2-x0*V.s;V.oy=(h-(y1-y0)*V.s)/2-y0*V.s}
+function zoomAt(k,sx,sy){const ns=Math.max(0.08,Math.min(14,V.s*k));const ix=(sx-V.ox)/V.s,iy=(sy-V.oy)/V.s;V.s=ns;V.ox=sx-ix*ns;V.oy=sy-iy*ns}
+function img2s(p){return [p[0]*V.s+V.ox,p[1]*V.s+V.oy]}
+function s2img(s){return [(s[0]-V.ox)/V.s,(s[1]-V.oy)/V.s]}
 function e2s(e){const r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]}
-function s2w(s){return [(s[0]-V.ox)/V.s,(s[1]-V.oy)/V.s]}
-function w2s(p){return [p[0]*V.s+V.ox,p[1]*V.s+V.oy]}
-function clampw(p){return [Math.max(G.x0,Math.min(G.x1,p[0])),Math.max(G.y0,Math.min(G.y1,p[1]))]}
-const COL=['#ff3b3b','#ffd400','#2bd9ff','#7dff5a'];
-let drag=null,pinch=null,ptrs=new Map(),blockTap=false;
-function pts(){const d=cur();let P=d.p.map(o2w);if(drag&&drag.idx>=P.length)P=P.concat([drag.pt]);else if(drag)P[drag.idx]=drag.pt;return P}
-function draw(){dims();const [w,h,dpr]=size();cx.setTransform(dpr,0,0,dpr,0,0);
- cx.fillStyle='#222';cx.fillRect(0,0,w,h);
- const a=w2s([G.x0,G.y0]),b=w2s([G.x1,G.y1]);cx.fillStyle='#5a5a5a';cx.fillRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);
- const im=img(),o=w2s([0,0]);if(im.complete&&im.naturalWidth)cx.drawImage(im,o[0],o[1],G.w*V.s,G.h*V.s);
- const P=pts(),n=P.length;
- // guide lines: every known edge extended across the whole view
- cx.save();cx.setLineDash([6,5]);cx.lineWidth=1;cx.strokeStyle='rgba(255,230,0,.9)';
- for(let i=0;i<n-1+(n==4?1:0);i++){const p=w2s(P[i]),q=w2s(P[(i+1)%n]);const dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy)||1,k=4000/L;
-  cx.beginPath();cx.moveTo(p[0]-dx*k,p[1]-dy*k);cx.lineTo(q[0]+dx*k,q[1]+dy*k);cx.stroke()}
- cx.restore();
- cx.lineWidth=2;cx.strokeStyle='rgba(255,255,255,.95)';cx.beginPath();
- P.forEach((p,i)=>{const q=w2s(p);i?cx.lineTo(q[0],q[1]):cx.moveTo(q[0],q[1])});if(n==4)cx.closePath();cx.stroke();
- P.forEach((p,i)=>{const q=w2s(p);cx.fillStyle=COL[i];cx.beginPath();cx.arc(q[0],q[1],8,0,7);cx.fill();
-  cx.fillStyle='#000';cx.font='bold 11px sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(i+1,q[0],q[1]+1)});
- ui();}
-function ui(){const d=cur(),n=d.p.length,L=list();
- $('prog').textContent=(S.i+1)+'/'+L.length;$('cam').textContent='카메라 '+cam().id.slice(3)+(S.sel?' · 다시 찍기':'')+(d.skip?' (건너뜀)':'');
- $('ask').innerHTML=n<4?('<b>'+(n+1)+'</b> '+LBL[d.m][n]):'완료 ✓ 다음으로';
- $('undo').disabled=!n;$('prev').disabled=S.i==0;$('next').disabled=n<4&&!d.skip;
- $('next').textContent=S.i==L.length-1?'끝내기 ✓':'다음 ▶';
- $('modeBtn').className=d.m=='s'?'on':'';
- $('modeBtn').textContent=d.m=='s'?'서비스 라인 모드 사용 중 (누르면 모서리 모드로)':'가까운 모서리가 화면 밖이에요 → 서비스 라인으로';
- dia(d.m,n);}
-function dia(m,n){const F=[[45,12],[105,12],[140,108],[10,108]],S2=[[45,12],[105,12],[124,70],[26,70]];
- const P=m=='c'?F:S2;let s='<polygon points="45,12 105,12 140,108 10,108" fill="#1d5e2e" stroke="#fff" stroke-width="2"/>'+
- '<line x1="31" y1="50" x2="119" y2="50" stroke="#fff" stroke-dasharray="3 2"/><text x="75" y="47" fill="#fff" font-size="8" text-anchor="middle">네트</text>'+
- '<line x1="26" y1="70" x2="124" y2="70" stroke="#ccc"/><text x="75" y="118" fill="#aaa" font-size="8" text-anchor="middle">(카메라 쪽 = 가까운 쪽)</text>';
- P.forEach((p,i)=>{s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(i==n?9:6)+'" fill="'+COL[i]+'" stroke="'+(i==n?'#fff':'none')+'" stroke-width="2"/>'+
-  '<text x="'+p[0]+'" y="'+(p[1]+3)+'" font-size="9" font-weight="bold" text-anchor="middle">'+(i+1)+'</text>'});$('dia').innerHTML=s;}
-function loupe(e,pw){const im=img();lp.style.display='block';
- let Lx=e.clientX-70,T=e.clientY-190;if(T<4)T=e.clientY+50;lp.style.left=Math.max(4,Math.min(window.innerWidth-144,Lx))+'px';lp.style.top=T+'px';
- const z=Math.max(V.s*2.5,0.6);lx.fillStyle='#5a5a5a';lx.fillRect(0,0,140,140);
- lx.drawImage(im,70-pw[0]*z,70-pw[1]*z,G.w*z,G.h*z);
- const P=pts();lx.save();lx.setLineDash([4,3]);lx.strokeStyle='rgba(255,230,0,.9)';lx.lineWidth=1;const n=P.length;
- for(let i=0;i<n-1+(n==4?1:0);i++){const p=P[i],q=P[(i+1)%n];const dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy)||1,k=5000/L;
-  lx.beginPath();lx.moveTo(70+(p[0]-dx*k-pw[0])*z,70+(p[1]-dy*k-pw[1])*z);lx.lineTo(70+(q[0]+dx*k-pw[0])*z,70+(q[1]+dy*k-pw[1])*z);lx.stroke()}
- lx.restore();lx.strokeStyle='#ff3b3b';lx.lineWidth=1;lx.beginPath();lx.moveTo(70,55);lx.lineTo(70,85);lx.moveTo(55,70);lx.lineTo(85,70);lx.stroke();}
+function storeToImg(p,sp){return [p[0]/sp.sx,p[1]/sp.sy]}
+function imgToStore(p,sp){return [p[0]*sp.sx,p[1]*sp.sy]}
+function clampImg(p,sp){const m=0.08;return [Math.max(-m*sp.iw,Math.min(sp.iw*(1+m),p[0])),Math.max(-m*sp.ih,Math.min(sp.ih*(1+m),p[1]))]}
+function isOutside(stored,sp){const x=stored[0]/sp.sx,y=stored[1]/sp.sy;return x<-1||y<-1||x>sp.iw+1||y>sp.ih+1}
+function round1(v){return Math.round(v*10)/10}
+function saneH(H,sp){const corners=[[0,0],[WIDTH,0],[WIDTH,LENGTH],[0,LENGTH],[3.05,NET_Y]];for(const [X,Y] of corners){const q=applyH(H,X,Y);if(!q||Math.abs(q[0])>sp.W*6||Math.abs(q[1])>sp.H*6)return false}return true}
+function currentSolve(fast){const dpts=ptsNow(),sp=spaceOf(cam());const obs=POINTS.filter(p=>p.kind==='ground'&&dpts[p.id]);const key=cam().id+'|'+JSON.stringify(dpts)+(fast?'|f':'');if(solved&&solved.key===key)return solved;let res=null;if(obs.length>=4)res=homography(obs.map(p=>[p.w[0],p.w[1]]),obs.map(p=>dpts[p.id]),{thresh:THRESH,fast:!!fast});const sane=!!(res&&isFinite(res.rms)&&saneH(res.H,sp));const err={};if(res)obs.forEach((p,i)=>{err[p.id]={e:res.err[i],inlier:!!res.inlier[i]}});solved={key,res:sane?res:res,sane,err,ground:obs.length,posts:countPosts(dpts),rms:sane?res.rms:null};return solved}
+function sampleLine(a,b,H,sp){const out=[];let prevW=null;const N=28;for(let i=0;i<=N;i++){const t=i/N;const q=applyH(H,a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t);if(!q){out.push(null);prevW=null;continue}if(prevW!==null&&prevW*q[2]<0)out.push(null);prevW=q[2];const ix=q[0]/sp.sx,iy=q[1]/sp.sy;if(ix<-0.55*sp.iw||ix>1.55*sp.iw||iy<-0.55*sp.ih||iy>1.55*sp.ih){out.push(null);continue}out.push([ix,iy])}return out}
+function strokeRuns(ctx,pts,map,color,dash,width){ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);let on=false;ctx.beginPath();for(const p of pts){if(!p){on=false;continue}const s=map(p);if(!on){ctx.moveTo(s[0],s[1]);on=true}else ctx.lineTo(s[0],s[1])}ctx.stroke();ctx.restore()}
+function paint(fast){const sp=spaceOf(cam()),[w,h,dpr]=size();cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,w,h);cx.fillStyle='#1a1a1a';cx.fillRect(0,0,w,h);const im=img();if(cam().failed){cx.fillStyle='#fff';cx.font='16px sans-serif';cx.textAlign='center';cx.fillText('사진을 찾지 못했어요',w/2,h/2);ui();return}if(!(im.complete&&im.naturalWidth)){cx.fillStyle='#ddd';cx.font='16px sans-serif';cx.textAlign='center';cx.fillText('사진을 불러오는 중…',w/2,h/2);ui();return}const o=img2s([0,0]);cx.drawImage(im,o[0],o[1],sp.iw*V.s,sp.ih*V.s);const sol=currentSolve(!!fast);const dpts=ptsNow();if(sol.sane){for(const ln of LINES){const pts=sampleLine(ln.a,ln.b,sol.res.H,sp);const st=STROKE[ln.k];strokeRuns(cx,pts,img2s,st[0],st[1],ln.k==='dbl'?2:1.5)}cx.save();cx.strokeStyle='rgba(43,217,255,.95)';cx.setLineDash([4,3]);cx.lineWidth=1.5;for(const [pid,bx] of [['left_net_post_top',0],['right_net_post_top',WIDTH]]){if(!dpts[pid])continue;const base=applyH(sol.res.H,bx,NET_Y);if(!base)continue;const a=img2s([base[0]/sp.sx,base[1]/sp.sy]),b=img2s(storeToImg(dpts[pid],sp));cx.beginPath();cx.moveTo(a[0],a[1]);cx.lineTo(b[0],b[1]);cx.stroke()}cx.restore()}
+ const focus=cur().focus;for(const p of POINTS){const spv=dpts[p.id];if(!spv)continue;const s=img2s(storeToImg(spv,sp));const info=sol.err[p.id];const outlier=info&&(!info.inlier||info.e>THRESH);const outside=isOutside(spv,sp);const col=outlier?'#ff3b30':(outside?'#ff9f0a':(p.kind==='post'?'#2bd9ff':'#7dff5a'));const r=p.kind==='post'?(p.id===focus?9:7):(p.id===focus?8:5.5);cx.beginPath();if(p.kind==='post'){cx.moveTo(s[0],s[1]-r);cx.lineTo(s[0]+r*0.82,s[1]);cx.lineTo(s[0],s[1]+r);cx.lineTo(s[0]-r*0.82,s[1]);cx.closePath()}else cx.arc(s[0],s[1],r,0,7);cx.fillStyle=col;cx.fill();cx.lineWidth=p.id===focus?2:1;cx.strokeStyle=p.id===focus?'#fff':'rgba(0,0,0,.45)';cx.stroke();if(outlier&&info){cx.font='bold 11px sans-serif';cx.fillStyle='#ffb4b4';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(Math.round(info.e)+'px',s[0]+r+3,s[1])}}
+ if(!countGround(dpts)){cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(8,8,Math.min(w-16,280),28);cx.fillStyle='#fff';cx.font='13px sans-serif';cx.textAlign='left';cx.textBaseline='middle';cx.fillText('목록의 점을 고르고 사진에서 누르세요',16,22)}
+ if(!drag)ui();else updateStat(sol)}
+function updateStat(sol){const dpts=ptsNow();const g=sol?sol.ground:countGround(dpts);const posts=countPosts(dpts);let t='바닥 점 <b>'+g+'</b>곳';if(g<6)t+=' · 6곳 이상 필요';else if(sol&&sol.sane)t+=' · 맞춘 점 어긋남 <b>'+sol.rms.toFixed(1)+'</b>px';t+=' · 기둥 <b>'+posts+'</b>/2';$('stat').innerHTML=t}
+function fmtErr(e){if(!isFinite(e))return '';return (e<10?e.toFixed(1):String(Math.round(e)))+'px'}
+function rowHTML(p,dpts,sol){const has=!!dpts[p.id];const info=sol.err[p.id];const outlier=has&&info&&(!info.inlier||info.e>THRESH);const outside=has&&isOutside(dpts[p.id],spaceOf(cam()));let col='#555',err='',cls='';if(has){if(outlier){col='#ff3b30';err=info?fmtErr(info.e):'다시';cls='bad'}else if(outside){col='#ff9f0a';err='화면 밖';cls='warn'}else if(p.kind==='post'){col='#2bd9ff';err='찍음';cls='ok'}else if(info){col='#7dff5a';err=fmtErr(info.e);cls=info.e>10?'warn':'ok'}else{col='#7dff5a';err='찍음';cls='ok'}}const dotCls='dot'+(p.kind==='post'?' post':'');return '<button type="button" class="prow'+(p.id===cur().focus?' on':'')+'" data-id="'+p.id+'"><i class="'+dotCls+'" style="background:'+col+'"></i><span class="nm">'+p.ko+'</span><span class="err '+cls+'">'+err+'</span></button>'}
+function hintFor(p){if(!p)return '';if(p.kind==='post')return '기둥 맨 위, 네트가 묶여 있는 곳을 누르세요. 높이는 1.55 m예요.';if(p.id==='net_x_centre')return '네트 한가운데 바닥이에요. 센터 선은 숏서비스에서 끝나고, 네트까지는 이어지지 않아요.';if(p.group==='net')return '네트와 이 세로 선이 만나는 바닥을 누르세요. 기둥 꼭대기가 아닙니다.';return '사진 안에서 이 두 선이 만나는 곳을 누르세요. 화면 밖은 추측해서 찍지 마세요.'}
+function svgXY(X,Y){const x0=18,x1=82,y0=18,y1=150;return [x0+(X/WIDTH)*(x1-x0), y1-(Y/LENGTH)*(y1-y0)]}
+function drawDiagram(){const dpts=ptsNow(),focus=BY[cur().focus];let s='<rect x="18" y="18" width="64" height="132" fill="#1d5e2e"/>';const seg=(a,b,col,dash)=>{const p=svgXY(a[0],a[1]),q=svgXY(b[0],b[1]);return '<line x1="'+p[0].toFixed(1)+'" y1="'+p[1].toFixed(1)+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="'+col+'" stroke-width="1"'+(dash?' stroke-dasharray="2 1.5"':'')+'/>'};
+ s+=LINES.map(ln=>seg(ln.a,ln.b,ln.k==='net'?'#f66':'#fff',ln.k==='net')).join('');
+ s+='<text x="50" y="12" text-anchor="middle" font-size="7" fill="#bcdcff">먼 쪽</text><text x="50" y="166" text-anchor="middle" font-size="7" fill="#d6ffe4">가까운 쪽 · 카메라</text><text x="3" y="86" font-size="7" fill="#cfe">왼</text><text x="84" y="86" font-size="7" fill="#cfe">오른</text>';
+ for(const p of POINTS){if(!dpts[p.id]||p.id===(focus&&focus.id))continue;let [x,y]=svgXY(p.w[0],p.w[1]);if(p.kind==='post')x+=p.w[0]<3?-5:5;s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="1.7" fill="'+(p.kind==='post'?'#2bd9ff':'#7dff5a')+'"/>'}
+ if(focus){let [x,y]=svgXY(focus.w[0],focus.w[1]);if(focus.kind==='post')x+=focus.w[0]<3?-6:6;s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="6.5" fill="#ffd400" stroke="#fff" stroke-width="1.4"/>'}
+ $('dia').innerHTML=s}
+function ui(){const d=cur(),L=list(),sol=currentSolve(false),dpts=ptsNow(),sp=spaceOf(cam());
+ $('prog').textContent=(S.i+1)+'/'+L.length;
+ $('cam').textContent='카메라 '+cam().id.slice(3)+(S.sel?' · 다시 찍기':'')+(d.skip?' · 건너뜀':'');
+ const g=sol.ground,posts=countPosts(dpts);
+ $('ask').innerHTML=g<6?('바닥 <b>'+g+'</b>/6'):(sol.sane?'어긋남 <b>'+sol.rms.toFixed(1)+'</b>px':'점을 더 찍어 주세요');
+ updateStat(sol);
+ const outliers=Object.entries(sol.err).filter(([,v])=>!v.inlier||v.e>THRESH);
+ const outs=POINTS.filter(p=>dpts[p.id]&&isOutside(dpts[p.id],sp));
+ let banner='',bcls='';
+ if(toast){banner=toast;bcls='bad';toast=''}
+ else if(g<6){banner='바닥 점이 '+g+'곳이에요. 보이는 교차점을 <b>6곳 이상</b> 찍어 주세요.'+(g>=4&&!sol.sane?' 점이 한 줄에 가까우면 다른 선의 점도 찍어 주세요.':'');bcls='warn'}
+ else if(!sol.sane){banner='점 배치로는 코트 선을 안정적으로 그릴 수 없어요. 가까운 쪽과 먼 쪽, 서로 다른 선 위를 찍어 주세요.';bcls='bad'}
+ else if(outliers.length){banner='빨간 점 '+outliers.length+'개는 다른 점과 안 맞아요. 목록에서 그 점을 누르고 다시 찍으세요.';bcls='bad'}
+ else if(outs.length){banner='주황 점은 사진 밖이에요. 화면 안에 보이는 교차점으로 바꿔 주세요.';bcls='warn'}
+ else if(posts<2){banner='잘 맞아요. 네트 기둥 꼭대기 2곳도 찍어 주세요. 높이 1.55 m라서 3D 카메라에 쓰입니다.';bcls='info'}
+ if(g>0&&g<6&&!d.allowFew&&!d.skip)banner+='<br><button type="button" id="few">더 이상 보이는 점이 없어요</button>';
+ const bEl=$('banner');bEl.className='banner'+(banner?(' '+bcls):'');bEl.style.display=banner?'block':'none';bEl.innerHTML=banner;
+ const focus=BY[d.focus]||POINTS[0];
+ $('ptname').textContent=focus.ko;
+ $('pthint').textContent=hintFor(focus);
+ $('delpt').disabled=!dpts[focus.id];
+ $('undo').disabled=!d.hist.length;
+ $('prev').disabled=S.i===0;
+ const leave=d.skip||d.allowFew||g>=6;
+ $('next').disabled=!leave;
+ $('next').textContent=S.i===L.length-1?'끝내기 ✓':'다음 ▶';
+ const tabs=L.map((c,i)=>{const cd=S.d[c.id]||blank();const n=countGround(cd.pts);let cls=i===S.i?'on':'';if(cd.skip&&n<6)cls+=' skip';else if(n>=6)cls+=' ok';else if(n>0)cls+=' mid';const sub=cd.skip&&n<6?'패스':(n?String(n):'');return '<button type="button" data-i="'+i+'" class="'+cls+'">'+c.id.slice(3)+(sub?'<small>'+sub+'</small>':'')+'</button>'}).join('');
+ if($('tabs').dataset.h!==tabs){$('tabs').dataset.h=tabs;$('tabs').innerHTML=tabs}
+ const openWas=$('more')&&$('more').open;const sc=$('plist').scrollTop;
+ let html='<div class="ghead">추천 · 보이는 것부터, 없는 점은 건너뛰기</div>';
+ html+=RECOMMENDED.map(id=>rowHTML(BY[id],dpts,sol)).join('');
+ const rest=POINTS.filter(p=>!RECSET.has(p.id));
+ html+='<details id="more"'+(openWas||!RECSET.has(focus.id)?' open':'')+'><summary>다른 교차점 '+rest.length+'곳</summary>';
+ let grp='';for(const p of rest){if(p.group!==grp){grp=p.group;html+='<div class="ghead">'+p.groupKo+'</div>' }html+=rowHTML(p,dpts,sol)}
+ html+='</details>';
+ $('plist').innerHTML=html;$('plist').scrollTop=sc;
+ if(d.focus!==lastFocus){lastFocus=d.focus;const y=window.scrollY;const row=$('plist').querySelector('.prow.on');if(row)row.scrollIntoView({block:'nearest'});window.scrollTo(0,y)}
+ drawDiagram()}
+function loupeAt(client,imgPt){const im=img();if(!(im.complete&&im.naturalWidth))return;const sp=spaceOf(cam());lp.style.display='block';let left=client.clientX-70,top=client.clientY-190;if(top<4)top=client.clientY+46;lp.style.left=Math.max(4,Math.min(window.innerWidth-148,left))+'px';lp.style.top=Math.max(4,top)+'px';const scale=Math.max(V.s*2.4,1.6);lx.setTransform(1,0,0,1,0,0);lx.fillStyle='#111';lx.fillRect(0,0,140,140);lx.drawImage(im,70-imgPt[0]*scale,70-imgPt[1]*scale,sp.iw*scale,sp.ih*scale);const sol=currentSolve(true);if(sol.sane){const map=p=>[70+(p[0]-imgPt[0])*scale,70+(p[1]-imgPt[1])*scale];for(const ln of LINES){const pts=sampleLine(ln.a,ln.b,sol.res.H,sp);const st=STROKE[ln.k];strokeRuns(lx,pts,map,st[0],st[1],1)}}lx.strokeStyle='#ff3b30';lx.lineWidth=1;lx.setLineDash([]);lx.beginPath();lx.moveTo(70,54);lx.lineTo(70,86);lx.moveTo(54,70);lx.lineTo(86,70);lx.stroke()}
+function hitPoint(sx,sy){const sp=spaceOf(cam()),dpts=ptsNow();let best=null,bd=26;for(const p of POINTS){if(!dpts[p.id])continue;const s=img2s(storeToImg(dpts[p.id],sp));const dd=Math.hypot(s[0]-sx,s[1]-sy);if(dd<bd){bd=dd;best=p.id}}return best}
 function pinchInfo(){const a=[...ptrs.values()];return {d:Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1,m:[(a[0][0]+a[1][0])/2,(a[0][1]+a[1][1])/2]}}
-cv.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,e2s(e));try{cv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();
- if(ptrs.size>=2){drag=null;lp.style.display='none';blockTap=true;const p=pinchInfo();pinch={d0:p.d,m0:p.m,s0:V.s,ox0:V.ox,oy0:V.oy};draw();return}
- if(blockTap)return;const d=cur();if(d.skip)return;const pw=clampw(s2w(e2s(e)));
- let idx=-1,best=28/V.s;d.p.map(o2w).forEach((q,i)=>{const dd=Math.hypot(q[0]-pw[0],q[1]-pw[1]);if(dd<best){best=dd;idx=i}});
- if(idx<0){if(d.p.length>=4)return;idx=d.p.length}
- drag={idx,pt:pw,id:e.pointerId};loupe(e,pw);draw();});
-cv.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,e2s(e));e.preventDefault();
- if(pinch&&ptrs.size>=2){const p=pinchInfo();const ns=Math.max(0.05,Math.min(20,pinch.s0*p.d/pinch.d0));
-  const wx=(pinch.m0[0]-pinch.ox0)/pinch.s0,wy=(pinch.m0[1]-pinch.oy0)/pinch.s0;V.s=ns;V.ox=p.m[0]-wx*ns;V.oy=p.m[1]-wy*ns;draw();return}
- if(drag&&e.pointerId===drag.id){drag.pt=clampw(s2w(e2s(e)));loupe(e,drag.pt);draw()}});
-function up(e,commit){ptrs.delete(e.pointerId);
- if(drag&&e.pointerId===drag.id){const d=cur();if(commit){const o=w2o(drag.pt);if(drag.idx<d.p.length)d.p[drag.idx]=o;else d.p.push(o);save()}drag=null;lp.style.display='none'}
- if(ptrs.size<2)pinch=null;if(ptrs.size==0)blockTap=false;draw();}
-cv.addEventListener('pointerup',e=>up(e,true));cv.addEventListener('pointercancel',e=>up(e,false));
-cv.addEventListener('wheel',e=>{e.preventDefault();const s=e2s(e);zoomAt(e.deltaY<0?1.15:1/1.15,s[0],s[1]);draw()},{passive:false});
-$('zin').onclick=()=>{zoomAt(1.4,cv.clientWidth/2,cv.clientHeight/2);draw()};$('zout').onclick=()=>{zoomAt(1/1.4,cv.clientWidth/2,cv.clientHeight/2);draw()};
-$('fit').onclick=()=>{fit();draw()};$('fitp').onclick=()=>{fitPhoto();draw()};
-$('undo').onclick=()=>{cur().p.pop();save();draw()};
-$('reset').onclick=()=>{const d=cur();d.p=[];d.skip=false;save();draw()};
-$('skip').onclick=()=>{const d=cur();d.skip=!d.skip;save();if(d.skip)go(1);else draw()};
-$('modeBtn').onclick=()=>{const d=cur();d.m=d.m=='c'?'s':'c';if(d.p.length>2)d.p=d.p.slice(0,2);save();draw()};
-function go(k){const L=list();S.i+=k;if(S.i>=L.length){S.i=L.length-1;save();finish();return}S.i=Math.max(0,S.i);save();fit();draw();window.scrollTo(0,0)}
-$('prev').onclick=()=>go(-1);$('next').onclick=()=>go(1);
-function code(){const o={v:1,c:{}};list().forEach(c=>{const d=S.d[c.id];if(!d)return;
- o.c[c.id]=d.skip&&d.p.length<4?{skip:1}:{m:d.m,p:d.p,W:c.W,H:c.H}});return JSON.stringify(o)}
-function show(id){['main','done','pick'].forEach(x=>$(x).style.display=x==id?'block':'none');window.scrollTo(0,0)}
-function finish(){$('code').value=code();show('done')}
+cv.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,e2s(e));try{cv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();if(ptrs.size>=2){drag=null;lp.style.display='none';blockTap=true;const p=pinchInfo();pinch={d0:p.d,m0:p.m,s0:V.s,ox0:V.ox,oy0:V.oy};paint(true);return}if(blockTap||cur().skip)return;const sp=spaceOf(cam());const imgPt=clampImg(s2img(e2s(e)),sp);const stored=imgToStore(imgPt,sp);let pid=hitPoint(e2s(e)[0],e2s(e)[1]);const d=cur();if(!pid)pid=d.focus||RECOMMENDED[0];d.focus=pid;drag={pid,pt:[round1(stored[0]),round1(stored[1])],pointerId:e.pointerId,before:JSON.stringify(d.pts),wasNew:!d.pts[pid]};loupeAt(e,storeToImg(drag.pt,sp));paint(true)});
+cv.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,e2s(e));e.preventDefault();if(pinch&&ptrs.size>=2){const p=pinchInfo();const ns=Math.max(0.08,Math.min(14,pinch.s0*p.d/pinch.d0));const ix=(pinch.m0[0]-pinch.ox0)/pinch.s0,iy=(pinch.m0[1]-pinch.oy0)/pinch.s0;V.s=ns;V.ox=p.m[0]-ix*ns;V.oy=p.m[1]-iy*ns;paint(true);return}if(drag&&e.pointerId===drag.pointerId){const sp=spaceOf(cam());const imgPt=clampImg(s2img(e2s(e)),sp);drag.pt=imgToStore(imgPt,sp).map(round1);loupeAt(e,imgPt);paint(true)}});
+function pointerUp(e,commit){ptrs.delete(e.pointerId);if(drag&&e.pointerId===drag.pointerId){const d=cur();if(commit){d.hist.push(drag.before);if(d.hist.length>40)d.hist.shift();d.pts[drag.pid]=drag.pt.slice();d.skip=false;if(drag.wasNew)d.focus=nextUnplaced(drag.pid);save()}drag=null;lp.style.display='none'}if(ptrs.size<2)pinch=null;if(!ptrs.size)blockTap=false;paint(false)}
+cv.addEventListener('pointerup',e=>pointerUp(e,true));
+cv.addEventListener('pointercancel',e=>pointerUp(e,false));
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=e2s(e);zoomAt(e.deltaY<0?1.15:1/1.15,s[0],s[1]);paint(true)},{passive:false});
+function nextUnplaced(fromId){const order=RECOMMENDED.concat(POINTS.map(p=>p.id).filter(id=>!RECSET.has(id)));const d=cur();const start=Math.max(0,order.indexOf(fromId));for(let k=1;k<=order.length;k++){const id=order[(start+k)%order.length];if(!d.pts[id])return id}return fromId}
+$('zin').onclick=()=>{zoomAt(1.4,cv.clientWidth/2,cv.clientHeight/2);paint(true)};
+$('zout').onclick=()=>{zoomAt(1/1.4,cv.clientWidth/2,cv.clientHeight/2);paint(true)};
+$('fitp').onclick=()=>{fit();paint(false)};
+$('undo').onclick=()=>{const d=cur();if(!d.hist.length)return;d.pts=JSON.parse(d.hist.pop());save();draw()};
+$('reset').onclick=()=>{const d=cur();d.hist.push(JSON.stringify(d.pts));d.pts={};d.skip=false;d.allowFew=false;d.focus=RECOMMENDED[0];save();draw()};
+$('pass').onclick=()=>{const d=cur();const n=nextUnplaced(d.focus);if(n===d.focus&&d.pts[d.focus]){$('pthint').textContent='남은 점이 없어요. 빨간 점이 있으면 그 점을 고치세요.';return}d.focus=n;save();draw()};
+$('delpt').onclick=()=>{const d=cur();if(!d.pts[d.focus])return;d.hist.push(JSON.stringify(d.pts));delete d.pts[d.focus];save();draw()};
+$('plist').addEventListener('click',e=>{const b=e.target.closest('.prow');if(!b)return;cur().focus=b.dataset.id;save();draw();cv.scrollIntoView({block:'start',behavior:'smooth'})});
+$('banner').addEventListener('click',e=>{if(e.target.id!=='few')return;cur().allowFew=true;save();go(1,true)});
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.i=+b.dataset.i;save();fit();draw();window.scrollTo(0,0)});
+$('skip').onclick=()=>{const d=cur();d.skip=!d.skip;save();if(d.skip)go(1,true);else draw()};
+function canLeave(){const d=cur();return d.skip||d.allowFew||countGround(d.pts)>=6}
+function incomplete(){return list().filter(c=>{const d=S.d[c.id]||blank();if(d.skip||d.allowFew)return false;return countGround(d.pts)<6})}
+function tryFinish(){const bad=incomplete();if(bad.length){S.i=list().findIndex(c=>c.id===bad[0].id);toast='카메라 '+bad.map(c=>c.id.slice(3)).join(', ')+'번은 바닥 점이 6곳보다 적어요. 더 찍거나, 더 이상 안 보이면 아래 버튼으로 넘어가세요.';save();fit();draw();window.scrollTo(0,0);return}finish()}
+function go(k,force){const L=list();if(k>0&&!force&&!canLeave()){draw();return}const dest=S.i+k;if(dest>=L.length){tryFinish();return}S.i=Math.max(0,dest);save();fit();draw();window.scrollTo(0,0)}
+$('prev').onclick=()=>{if(S.i<=0)return;S.i--;save();fit();draw();window.scrollTo(0,0)};
+$('next').onclick=()=>go(1,false);
+function code(){const order=RECOMMENDED.concat(POINTS.map(p=>p.id).filter(id=>!RECSET.has(id)));const o={v:2,c:{}};list().forEach(c=>{const d=S.d[c.id];if(!d)return;const sp=c.space||spaceOf(c);const ids=order.filter(id=>d.pts[id]);const g=ids.filter(id=>BY[id].kind==='ground').length;if(d.skip&&g<6){o.c[c.id]={skip:1};return}if(!ids.length)return;o.c[c.id]={m:'mp',pts:ids.map(id=>{const xy=d.pts[id];return {id:id,w:BY[id].w,p:[round1(xy[0]),round1(xy[1])]}}),W:sp.W,H:sp.H}});return JSON.stringify(o)}
+function summary(){return list().map(c=>{const d=S.d[c.id]||blank();const g=countGround(d.pts),posts=countPosts(d.pts);if(d.skip&&g<6)return '<div>카메라 '+c.id.slice(3)+' · 건너뜀</div>';if(!g&&!posts)return '';const sol=solveCam(c);const rms=sol&&sol.sane?(' · 어긋남 '+sol.rms.toFixed(1)+'px'):'';const out=sol?Object.values(sol.err).filter(v=>!v.inlier||v.e>THRESH).length:0;return '<div>카메라 '+c.id.slice(3)+' · 바닥 '+g+'곳'+rms+' · 기둥 '+posts+'/2'+(out?' · 다시 찍을 점 '+out:'' )+(d.allowFew&&g<6?' · 점이 부족함':'')+'</div>'}).join('')}
+function solveCam(c){const d=S.d[c.id];if(!d)return null;const obs=POINTS.filter(p=>p.kind==='ground'&&d.pts[p.id]);if(obs.length<4)return {sane:false,err:{},rms:null,ground:obs.length};const sp=c.space||spaceOf(c);const res=homography(obs.map(p=>[p.w[0],p.w[1]]),obs.map(p=>d.pts[p.id]),{thresh:THRESH});const sane=!!(res&&isFinite(res.rms)&&saneH(res.H,sp));const err={};if(res)obs.forEach((p,i)=>{err[p.id]={e:res.err[i],inlier:!!res.inlier[i]}});return {sane,err,rms:sane?res.rms:null,ground:obs.length,res}}
+function show(id){['main','done','pick'].forEach(x=>$(x).style.display=x===id?'block':'none');window.scrollTo(0,0)}
+function finish(){$('code').value=code();$('sum').innerHTML=summary();$('copied').textContent='';show('done')}
 $('back').onclick=()=>{show('main');fit();draw()};
-$('copy').onclick=async()=>{const t=$('code');try{await navigator.clipboard.writeText(t.value)}catch(_){t.focus();t.select();document.execCommand('copy')}
- $('copied').textContent='복사됐어요 ✓ 이제 마스터 채팅에 붙여 넣어 주세요.'};
-$('redoBtn').onclick=()=>{$('pklist').innerHTML=CAMS.map(c=>'<label class="pk"><input type="checkbox" value="'+c.id+'"'+(S.sel&&S.sel.includes(c.id)?' checked':'')+'><img src="'+c.src+'">카메라 '+c.id.slice(3)+'</label>').join('');show('pick')};
-$('pkgo').onclick=()=>{const sel=[...document.querySelectorAll('#pklist input:checked')].map(x=>x.value);if(!sel.length)return;
- S.sel=sel;S.i=0;sel.forEach(id=>S.d[id]={m:'c',p:[]});save();show('main');fit();draw()};
-$('pkall').onclick=()=>{S.sel=null;S.i=0;save();show('main');fit();draw()};$('pkcancel').onclick=()=>{show('main');draw()};
-window.addEventListener('resize',()=>{fit();draw()});fit();draw();
-</script></body></html>
+$('copy').onclick=async()=>{const t=$('code');try{await navigator.clipboard.writeText(t.value)}catch(_){t.focus();t.select();document.execCommand('copy')}$('copied').textContent='복사됐어요 ✓ 이제 마스터 채팅에 붙여 넣어 주세요.'};
+$('redoBtn').onclick=()=>{$('pklist').innerHTML=CAMS.map(c=>'<label class="pk"><input type="checkbox" value="'+c.id+'"'+(S.sel&&S.sel.includes(c.id)?' checked':'')+'><img src="'+c.src+'" alt=""><span>카메라 '+c.id.slice(3)+'</span></label>').join('');show('pick')};
+$('pkgo').onclick=()=>{const sel=[...document.querySelectorAll('#pklist input:checked')].map(x=>x.value);if(!sel.length)return;S.sel=sel;S.i=0;sel.forEach(id=>{S.d[id]=blank()});save();show('main');fit();draw()};
+$('pkall').onclick=()=>{S.sel=null;S.i=0;save();show('main');fit();draw()};
+$('pkcancel').onclick=()=>{show('main');draw()};
+function draw(){paint(false)}
+window.addEventListener('resize',()=>{if($('main').style.display!=='none'){fit();draw()}});
+window.__ct={POINTS,BY,RECOMMENDED,homography,THRESH,
+ ready(){const im=img();return !!(im.complete&&im.naturalWidth)},
+ place(id,x,y){const d=cur();d.hist.push(JSON.stringify(d.pts));d.pts[id]=[round1(x),round1(y)];d.skip=false;save();draw()},
+ placeImage(id,ix,iy){const sp=spaceOf(cam());this.place(id,ix*sp.sx,iy*sp.sy)},
+ clear(){const d=cur();d.pts={};d.skip=false;d.allowFew=false;d.hist=[];d.focus=RECOMMENDED[0];save();draw()},
+ focus(id){cur().focus=id;draw()},
+ code,cam(){return cam().id},
+ goto(i){S.i=i;fit();draw()},
+ view(){const r=cv.getBoundingClientRect(),sp=spaceOf(cam());return {s:V.s,ox:V.ox,oy:V.oy,left:r.left,top:r.top,width:r.width,height:r.height,iw:sp.iw,ih:sp.ih,W:sp.W,H:sp.H,sx:sp.sx,sy:sp.sy}},
+ metrics(){const sol=currentSolve(false),dpts=ptsNow();return {ground:sol.ground,posts:countPosts(dpts),rms:sol.sane?sol.rms:null,sane:sol.sane,outliers:Object.entries(sol.err).filter(([,v])=>!v.inlier||v.e>THRESH).map(([id])=>id),errors:sol.err,W:spaceOf(cam()).W,H:spaceOf(cam()).H}},
+ pts(){return ptsNow()}};
+imgs.forEach((im,i)=>{const c=CAMS[i];im.onload=()=>{c.space=frameSpace(im);c.failed=false;if(cam()===c){fit();draw()}};im.onerror=()=>{c.failed=true;if(cam()===c)draw()};im.src=c.src});
+fit();draw();
+</script>
+</body>
+</html>
