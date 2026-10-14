@@ -66,13 +66,11 @@ function cam(){const L=list();if(S.i>=L.length)S.i=L.length-1;return L[S.i]}
 function img(){return imgs[CAMS.indexOf(cam())]}
 function cur(){const c=cam();return S.d[c.id]||(S.d[c.id]={m:'c',p:[]})}
 function save(){localStorage.setItem(KEY,JSON.stringify(S))}
-// URL ?redo=1,2,5 -> only those cams, cleared once
 (function(){const q=new URLSearchParams(location.search).get('redo');if(!q)return;
  const sel=q.split(',').map(s=>'cam'+parseInt(s)).filter(id=>CAMS.some(c=>c.id==id));
  if(sel.length&&JSON.stringify(sel)!==JSON.stringify(S.sel)){S.sel=sel;S.i=0;sel.forEach(id=>S.d[id]={m:'c',p:[]});save()}})();
 const LBL={c:['먼 쪽 왼쪽 모서리','먼 쪽 오른쪽 모서리','가까운 쪽 오른쪽 모서리','가까운 쪽 왼쪽 모서리'],
  s:['먼 쪽 왼쪽 모서리','먼 쪽 오른쪽 모서리','가까운 쪽 서비스라인 오른쪽 끝','가까운 쪽 서비스라인 왼쪽 끝']};
-// world = jpg px (photo 0..w,0..h; margin outside). view: screen(css) = world*V.s + (V.ox,V.oy)
 let V={s:0.2,ox:0,oy:0},G={w:1280,h:720};
 function dims(){const im=img();G.w=im.naturalWidth||1280;G.h=im.naturalHeight||720;
  G.x0=-ML*G.w;G.y0=-MT*G.h;G.x1=G.w*(1+MR);G.y1=G.h*(1+MB);}
@@ -95,7 +93,6 @@ function draw(){dims();const [w,h,dpr]=size();cx.setTransform(dpr,0,0,dpr,0,0);
  const a=w2s([G.x0,G.y0]),b=w2s([G.x1,G.y1]);cx.fillStyle='#5a5a5a';cx.fillRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);
  const im=img(),o=w2s([0,0]);if(im.complete&&im.naturalWidth)cx.drawImage(im,o[0],o[1],G.w*V.s,G.h*V.s);
  const P=pts(),n=P.length;
- // guide lines: every known edge extended across the whole view
  cx.save();cx.setLineDash([6,5]);cx.lineWidth=1;cx.strokeStyle='rgba(255,230,0,.9)';
  for(let i=0;i<n-1+(n==4?1:0);i++){const p=w2s(P[i]),q=w2s(P[(i+1)%n]);const dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy)||1,k=4000/L;
   cx.beginPath();cx.moveTo(p[0]-dx*k,p[1]-dy*k);cx.lineTo(q[0]+dx*k,q[1]+dy*k);cx.stroke()}
