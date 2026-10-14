@@ -138,11 +138,6 @@ details#more>summary{padding:10px 12px;cursor:pointer;color:#ddd;font-size:14px}
 </div>
 <canvas id="loupe" width="140" height="140"></canvas>
 <script>
-/* Court, metres. Origin = near-left doubles corner (camera end, left when
-   facing the far end). x across 0..6.10, y along 0..13.40, z up.
-   The 1280x720 stills are 2/3 previews of the 1920x1080 video, so taps on
-   those files are stored in 1920x1080 pixels. Any other image size is stored
-   in that image's own pixels. */
 const WIDTH=6.10, LENGTH=13.40, NET_Y=6.70, POST_H=1.55, THRESH=20;
 const XS=[['left_doubles',0,'왼쪽 복식'],['left_singles',0.46,'왼쪽 단식'],['centre',3.05,'센터'],['right_singles',5.64,'오른쪽 단식'],['right_doubles',6.10,'오른쪽 복식']];
 const YS=[['near_back',0,'가까운 끝선'],['near_long_service',0.76,'가까운 롱서비스'],['near_short_service',4.72,'가까운 숏서비스'],['net',6.70,'네트'],['far_short_service',8.68,'먼 숏서비스'],['far_long_service',12.64,'먼 롱서비스'],['far_back',13.40,'먼 끝선']];
@@ -182,11 +177,12 @@ if(!S||typeof S!=='object')S={i:0,d:{},sel:null};
 if(!S.d)S.d={};
 const cv=$('cv'),cx=cv.getContext('2d'),lp=$('loupe'),lx=lp.getContext('2d');
 const imgs=CAMS.map(()=>{const im=new Image();return im});
-function frameSpace(im){const w=im.naturalWidth,h=im.naturalHeight;if(w===1280&&h===720)return {W:1920,H:1080,sx:1.5,sy:1.5,iw:w,ih:h};return {W:w,H:h,sx:1,sy:1,iw:w,ih:h}}
+const FRAME=(()=>{const preview={w:1280,h:720},video={w:1920,h:1080};return {preview,video,space:{W:video.w,H:video.h,sx:video.w/preview.w,sy:video.h/preview.h,iw:preview.w,ih:preview.h}}})();
+function frameSpace(im){const w=im.naturalWidth,h=im.naturalHeight;if(w===FRAME.preview.w&&h===FRAME.preview.h)return Object.assign({},FRAME.space);return {W:w,H:h,sx:1,sy:1,iw:w,ih:h}}
 function list(){return S.sel?CAMS.filter(c=>S.sel.includes(c.id)):CAMS}
 function cam(){const L=list();if(S.i<0)S.i=0;if(S.i>=L.length)S.i=L.length-1;return L[Math.max(0,S.i)]}
 function img(){return imgs[CAMS.indexOf(cam())]}
-function spaceOf(c){return (c&&c.space)||{W:1920,H:1080,sx:1.5,sy:1.5,iw:1280,ih:720}}
+function spaceOf(c){return (c&&c.space)||Object.assign({},FRAME.space)}
 function blank(){return {pts:{},skip:false,allowFew:false,focus:RECOMMENDED[0],hist:[]}}
 function cur(){const c=cam();const d=S.d[c.id]||(S.d[c.id]=blank());if(!d.pts)d.pts={};if(!d.hist)d.hist=[];if(!d.focus)d.focus=RECOMMENDED[0];return d}
 function save(){try{const slim={i:S.i,sel:S.sel,d:{}};for(const id in S.d){const d=S.d[id];slim.d[id]={pts:d.pts,skip:!!d.skip,allowFew:!!d.allowFew,focus:d.focus||RECOMMENDED[0]}}localStorage.setItem(KEY,JSON.stringify(slim))}catch(e){}}
